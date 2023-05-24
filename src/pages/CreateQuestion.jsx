@@ -19,8 +19,67 @@ const CreateQuestion = () => {
     questionTxt: "",
     questionType: "",
   });
-  const [quesObj, setQuesObj] = useState(initialState);
+  const [sQ, setSQ] = useState(initialState);
   const [showOpt, setShowOpt] = useState(false);
+  const [inputField, setInputField] = useState([
+    {
+      optionValue: "",
+    },
+  ]);
+
+  const [openQues, setOpenQues] = useState(true);
+
+  const addOption = () => {
+    setInputField([
+      ...inputField,
+      {
+        optionValue: "",
+      },
+    ]);
+  };
+
+  const handleRemoveFields = (index) => {
+    const values = [...inputField];
+    values.splice(index, 1);
+    setInputField(values);
+  };
+
+  const handleInputChange = (index, e) => {
+    const values = [...inputField];
+    values[index].optionValue = e.target.value;
+    setInputField(values);
+
+    setSQ((prev) => ({ ...prev, options: [...values] }));
+  };
+
+  const handleAns = (e) => {
+    console.log(option.questionType);
+    if (
+      e.target.checked === true &&
+      sQ.answer.length === 0 &&
+      option.questionType === "1"
+    ) {
+      setSQ((prev) => ({
+        ...prev,
+        answer: [...prev.answer, e.target.value],
+      }));
+    } else if (e.target.checked === true && option.questionType === "2") {
+      setSQ((prev) => ({
+        ...prev,
+        answer: [...prev.answer, e.target.value],
+      }));
+    } else if (e.target.checked === false) {
+      setSQ((prev) => ({
+        ...prev,
+        answer: prev.answer.filter((val) => val !== e.target.value),
+      }));
+    }
+  };
+
+  const handleSubmit = () => {
+    console.log(inputField);
+    console.log(sQ);
+  };
 
   const handleQuestion = (e) => {
     setQuestion({ ...question, questionTxt: e.target.value });
@@ -30,6 +89,18 @@ const CreateQuestion = () => {
     setQuestion({ ...question, questionType: e.target.value });
     setShowOpt(true);
   };
+
+  useEffect(() => {
+    if (question.questionType === "3") {
+      setOpenQues(false);
+    } else {
+      setOpenQues(true);
+    }
+    setSQ((prev) => ({
+      ...prev,
+      answer: [],
+    }));
+  }, [question]);
 
   const OptionTypes = types.map((option) => {
     return (
@@ -79,11 +150,7 @@ const CreateQuestion = () => {
                 Question Type<span className="text-danger">*</span>
               </label>
               <div className="d-flex gap-4"> {OptionTypes}</div>
-              {showOpt && (
-                <label htmlFor="" className="mb-3">
-                  Option<span className="text-danger">*</span>
-                </label>
-              )}
+              {showOpt && <h1>Hello</h1>}
             </div>
           </div>
         </div>
