@@ -19,6 +19,7 @@ const CreateQuestion = () => {
     questionTxt: "",
     questionType: "",
   });
+  const [quesObj, setQuesObj] = useState(initialState);
   const [showOpt, setShowOpt] = useState(false);
 
   const handleQuestion = (e) => {
