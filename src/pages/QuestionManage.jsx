@@ -1,11 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { quesDeleted } from "../features/quesCrud";
 
 const QuestionManage = () => {
+  const questionObj = JSON.parse(localStorage.getItem("questions"));
   const [questionList, setQuestionList] = useState([]);
 
+  const navigate = useNavigate();
+
+  const questionDeleted = (id) => {
+    const filterList = questionObj.filter((quest) => quest.id !== id);
+    setQuestionList(filterList);
+    localStorage.setItem("questions", JSON.stringify(filterList));
+  };
+
   useEffect(() => {
-    const questionObj = JSON.parse(localStorage.getItem("questions"));
     setQuestionList(questionObj);
   }, []);
 
@@ -45,13 +55,16 @@ const QuestionManage = () => {
                         <td>{new Date(question.date).toLocaleDateString()}</td>
                         <td>
                           <div className="d-flex gap-2">
-                            <button className="btn btn-sm btn-outline-success">
-                              Edit
-                            </button>
+                            <Link to={`/update-question/${question.id}`}>
+                              <button className="btn btn-sm btn-outline-success">
+                                Edit
+                              </button>
+                            </Link>
+
                             <button
                               className="btn btn-sm btn-danger"
-                              data-bs-toggle="modal"
                               data-bs-target="#staticBackdrop"
+                              onClick={() => questionDeleted(question.id)}
                             >
                               Delete
                             </button>

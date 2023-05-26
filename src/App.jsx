@@ -17,6 +17,10 @@ function App() {
         <Routes>
           <Route path="/" element={<QManage />}></Route>
           <Route path="/create-question" element={<CreateQuestion />}></Route>
+          <Route
+            path="/update-question/:id"
+            element={<CreateQuestion />}
+          ></Route>
           <Route path="/list-question" element={<ListQuestion />}></Route>
         </Routes>
       </React.Suspense>

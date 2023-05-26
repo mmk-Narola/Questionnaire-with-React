@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { DATA_CONSTANTS } from "../contants/qestionType";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const initialState = {
   question: "",
@@ -12,12 +12,15 @@ const initialState = {
   id: "",
   answered: false,
   ansDate: "",
+  userAns: [],
 };
 
 const CreateQuestion = () => {
   let id = uuidv4();
+  const quesid = useParams();
+  const quId = quesid["id"];
+  const questionObj = JSON.parse(localStorage.getItem("questions"));
   const types = DATA_CONSTANTS.OPTION_TYPE;
-
   const [question, setQuestion] = useState({
     questionTxt: "",
     questionType: "",
@@ -31,6 +34,7 @@ const CreateQuestion = () => {
   ]);
   const [openQues, setOpenQues] = useState(true);
   const [error, setError] = useState(false);
+  const [edit, setEdit] = useState(false);
 
   const navigate = useNavigate();
 
@@ -81,10 +85,11 @@ const CreateQuestion = () => {
 
   const handleQuestion = (e) => {
     setQuestion({ ...question, questionTxt: e.target.value });
-    setError(false);
+    // setError(false);
   };
 
   const handleOption = (e) => {
+    console.log(e.target.value);
     setQuestion({ ...question, questionType: e.target.value });
 
     setSQ((prev) => ({
@@ -121,18 +126,38 @@ const CreateQuestion = () => {
         : [];
       localData.push(sQ);
       localStorage.setItem("questions", JSON.stringify(localData));
-    } else {
-      setError(true);
     }
+    //  else {
+    //   setError(true);
+    // }
     // setSQ(initialState);
   };
 
+  const loadUserData = () => {
+    const findQues = questionObj.find((ques) => ques.id === quId) || null;
+    setQuestion({
+      questionType: findQues.type,
+      questionTxt: findQues.question,
+    });
+    console.log(findQues);
+    setEdit(true);
+  };
+
   useEffect(() => {
-    if (question.questionType === "3") {
-      setOpenQues(false);
+    if (quId) {
+      loadUserData();
+      setEdit(true);
     } else {
-      setOpenQues(true);
+      setQuestion({
+        questionTxt: "",
+        questionType: "",
+      });
+      setEdit(false);
     }
+  }, [quId]);
+
+  useEffect(() => {
+    question.questionType === "3" ? setOpenQues(false) : setOpenQues(true);
     setSQ((prev) => ({
       ...prev,
       answer: [],
@@ -161,7 +186,7 @@ const CreateQuestion = () => {
         <div className="row">
           <div className="col-12">
             <div className="main-title">
-              <h2>Add Questions</h2>
+              <h2>{edit ? "Edit Question" : "Add Question"}</h2>
             </div>
           </div>
         </div>
@@ -178,6 +203,8 @@ const CreateQuestion = () => {
                 name="question"
                 value={question.questionTxt}
                 onChange={handleQuestion}
+                autoComplete="false"
+                aria-autocomplete="none"
               />
             </div>
           </div>
@@ -186,7 +213,7 @@ const CreateQuestion = () => {
               <label className="form-label">
                 Options Type<span className="text-danger">*</span>
               </label>
-              <div className="d-flex gap-4"> {OptionTypes}</div>
+              <div className="d-flex gap-4"> {OptionTypes || newObject}</div>
               {showOpt && openQues && (
                 <div className="row mt-3 align-items-center">
                   <div>
@@ -245,7 +272,7 @@ const CreateQuestion = () => {
                     type="submit"
                     onClick={handleSubmit}
                   >
-                    ADD
+                    {edit ? "Edit" : "Add "}
                   </button>
                   <button className="btn btn-danger px-4" type="button">
                     CANCEL
@@ -339,3 +366,9 @@ export default CreateQuestion;
 // };
 
 // export default CreateQuestion;
+
+// if (question.questionType === "3") {
+//   setOpenQues(false);
+// } else {
+//   setOpenQues(true);
+// }

@@ -1,65 +1,56 @@
 import React, { useEffect, useState } from "react";
 
+const intialUserAns = {
+  type: "",
+  ans: "",
+};
+
 const ListQuestion = () => {
   const questionObj = JSON.parse(localStorage.getItem("questions"));
 
   const [localData, setLocalData] = useState(questionObj || []);
   const [answerObj, setAnswerObj] = useState([]);
   const [unanswerObj, setUnanswerObj] = useState([]);
-  const [openAns, setOpenAns] = useState("");
-  const [correctRadio, setCorrectRadio] = useState("");
-  const [correctCheckOpt, setCorrectCheckOpt] = useState([]);
-
-  const handleQuestion = (e) => {
-    console.log(e.target.value);
-    setOpenAns(e.target.value);
-  };
-
-  const handleOption = (e) => {
-    console.log("Option", e.target.value);
-    setCorrectRadio(e.target.value);
-  };
+  const [userAns, setUserAns] = useState("");
 
   const setAnsValue = (data) => {
-    localStorage.setItem("questions", JSON.stringify(data));
-    const ansTrue = data?.filter((ele) => ele.answered === true);
-    const ansFalse = data?.filter((ele) => ele.answered === false);
-    setAnswerObj(ansTrue);
-    setUnanswerObj(ansFalse);
-  };
-
-  const onSubmitAns = (type) => {
-    localData.forEach((ele) => {
-      ele.type == type
-        ? ((ele.ansDate = new Date().toJSON()), (ele.answered = true))
-        : "No Data";
-    });
-    setAnsValue(localData);
-  };
-
-  const onBackSubmit = (type) => {
-    localData.forEach((ele) => {
-      ele.type == type
-        ? ((ele.ansDate = new Date().toJSON()), (ele.answered = false))
-        : "No Data";
-    });
-
-    setAnsValue(localData);
-  };
-
-  useEffect(() => {
-    localData?.sort(function (a, b) {
+    data?.sort(function (a, b) {
       let dateA = new Date(a.date).getTime();
       let dateB = new Date(b.date).getTime();
       return dateA < dateB ? 1 : -1; // ? -1 : 1 for ascending/increasing order
     });
+    const ansTrue = data?.filter((ele) => ele.answered === true);
+    const ansFalse = data?.filter((ele) => ele.answered === false);
+    setAnswerObj(ansTrue);
+    setUnanswerObj(ansFalse);
+    localStorage.setItem("questions", JSON.stringify(data));
+  };
 
-    const ansTrue = localData?.filter((ele) => ele.answered === true);
-    const ansFalse = localData?.filter((ele) => ele.answered === false);
-    if (ansFalse && ansTrue) {
-      setUnanswerObj(ansFalse);
-      setAnswerObj(ansTrue);
-    }
+  const userAnsValue = (submitType, ans, id) => {
+    localData.forEach((ele) => {
+      ele.id == id
+        ? ((ele.ansDate = new Date().toJSON()),
+          (ele.answered = submitType),
+          (ele.userAns = ans))
+        : "No Data";
+    });
+  };
+
+  const onSubmitAns = (submitType, questionId) => {
+    submitType === true
+      ? userAnsValue(submitType, userAns, questionId)
+      : userAnsValue(submitType, null, questionId);
+    console.log(localData);
+    setAnsValue(localData);
+  };
+
+  useEffect(() => {
+    // localData?.sort(function (a, b) {
+    //   let dateA = new Date(a.date).getTime();
+    //   let dateB = new Date(b.date).getTime();
+    //   return dateA < dateB ? 1 : -1; // ? -1 : 1 for ascending/increasing order
+    // });
+    setAnsValue(localData);
   }, [localData]);
 
   return (
@@ -95,7 +86,9 @@ const ListQuestion = () => {
                                       name="answers"
                                       id={ele.id}
                                       value={opt.optionValue}
-                                      onChange={(e) => handleOption(e)}
+                                      onChange={(e) =>
+                                        setUserAns(e.target.value)
+                                      }
                                     />
                                     {opt.optionValue}
                                   </label>
@@ -113,8 +106,9 @@ const ListQuestion = () => {
                                           className="form-check-input"
                                           type="checkbox"
                                           name="answers"
-                                          id="{{ ans.id }}"
-                                          value="{{ ans.id }}"
+                                          id={ele.id}
+                                          value={ele.type}
+                                          onChange={(e) => handleOption(e)}
                                         />
                                         {opt.optionValue}
                                       </label>
@@ -130,8 +124,10 @@ const ListQuestion = () => {
                                           type="text"
                                           className="form-control"
                                           name="ansTxt"
-                                          value={openAns}
-                                          onChange={handleQuestion}
+                                          value={userAns}
+                                          onChange={(e) =>
+                                            setUserAns(e.target.value)
+                                          }
                                         />
                                       </div>
                                     </>
@@ -148,8 +144,7 @@ const ListQuestion = () => {
                           className="btn btn-sm btn-success"
                           data-bs-toggle="modal"
                           data-bs-target="#staticBackdrop"
-                          onClick={() => onSubmitAns(ele.type)}
-                          disabled={ele.answered.length === 0}
+                          onClick={() => onSubmitAns(true, ele.id)}
                         >
                           SAVE
                         </button>
@@ -181,21 +176,12 @@ const ListQuestion = () => {
                         <div className="form-check">
                           {ele.type === "1" ? (
                             <>
-                              {ele.options.map((opt) => (
-                                <>
-                                  <label className="form-check-label d-flex gap-2">
-                                    <input
-                                      className="form-check-input"
-                                      type="radio"
-                                      name="answers"
-                                      id={ele.id}
-                                      value={opt.optionValue}
-                                      onChange={(e) => handleOption(e)}
-                                    />
-                                    {opt.optionValue}
-                                  </label>
-                                </>
-                              ))}
+                              <div className="mt-1 mb-1">
+                                <h4>{ele.userAns}</h4>
+                              </div>
+                              {ele.answer.map((opt) =>
+                                opt === userAns ? "Right" : "Wrong"
+                              )}
                             </>
                           ) : (
                             <>
@@ -221,7 +207,7 @@ const ListQuestion = () => {
                                   {ele.type === "3" ? (
                                     <>
                                       <div className="mt-1 mb-1">
-                                        <h4>Text Ans</h4>
+                                        <h4>{ele.userAns}</h4>
                                       </div>
                                     </>
                                   ) : null}
@@ -237,8 +223,7 @@ const ListQuestion = () => {
                           className="btn btn-sm btn-danger"
                           data-bs-toggle="modal"
                           data-bs-target="#staticBackdrop"
-                          onClick={() => onBackSubmit(ele.type)}
-                          disabled={ele.answered.length === 0}
+                          onClick={() => onSubmitAns(false, ele.id)}
                         >
                           Back
                         </button>
@@ -256,3 +241,51 @@ const ListQuestion = () => {
 };
 
 export default ListQuestion;
+
+// submitType === true
+//   ? localData.forEach((ele) => {
+//       ele.type == type
+//         ? ((ele.ansDate = new Date().toJSON()),
+//           (ele.answered = submitType),
+//           (ele.userAns = [userAns.ans]))
+//         : "No Data";
+//     })
+//   : localData.forEach((ele) => {
+//       ele.type == type
+//         ? ((ele.ansDate = new Date().toJSON()),
+//           (ele.answered = submitType),
+//           (ele.userAns = []))
+//         : "No Data";
+//     });
+
+// const onBackSubmit = (type) => {
+//   localData.forEach((ele) => {
+//     ele.type == type
+//       ? ((ele.ansDate = new Date().toJSON()), (ele.answered = false))
+//       : "No Data";
+//   });
+//   setAnsValue(localData);
+// };
+
+// const handleUserAns = (e,type) => {
+//   console.log("Option", e.target.value);
+//   localData.forEach((ele)=>{
+
+//   })
+
+// };
+
+// const handleQuestion = (e) => {
+//   setOpenAns(e.target.value);
+// };
+
+// const handleOption = (e) => {
+//   console.log("Option", e.target.value);
+//   setCorrectRadio(e.target.value);
+// };
+// const ansTrue = localData?.filter((ele) => ele.answered === true);
+// const ansFalse = localData?.filter((ele) => ele.answered === false);
+// if (ansFalse && ansTrue) {
+//   setUnanswerObj(ansFalse);
+//   setAnswerObj(ansTrue);
+// }
